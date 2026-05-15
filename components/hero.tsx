@@ -42,7 +42,7 @@ export function Hero() {
             variant="secondary"
             className="text-base px-8 py-6"
           >
-            <Link href="#vehicles">
+            <Link href="/vehicles">
               View Fleet
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
@@ -53,7 +53,7 @@ export function Hero() {
             variant="outline"
             className="text-base px-8 py-6 border-primary-foreground/20 text-primary hover:bg-primary-foreground/10 hover:text-primary-foreground"
           >
-            <Link href="#rent">Book Now</Link>
+            <Link href="/rent">Book Now</Link>
           </Button>
         </div>
       </div>

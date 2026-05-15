@@ -1,13 +1,13 @@
 import { Header } from "@/components/header"
-import { Hero } from "@/components/hero"
+import { About } from "@/components/about"
 import { Footer } from "@/components/footer"
 
-export default function Home() {
+export default function AboutPage() {
   return (
     <>
       <Header />
-      <main>
-        <Hero />
+      <main className="pt-16">
+        <About />
       </main>
       <Footer />
     </>

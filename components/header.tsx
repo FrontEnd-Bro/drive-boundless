@@ -10,9 +10,9 @@ export function Header() {
   const [open, setOpen] = useState(false)
 
   const navItems = [
-    { href: "#about", label: "About" },
-    { href: "#vehicles", label: "Vehicles" },
-    { href: "#rent", label: "Rent Now" },
+    { href: "/about", label: "About" },
+    { href: "/vehicles", label: "Vehicles" },
+    { href: "/rent", label: "Rent Now" },
   ]
 
   return (
@@ -34,7 +34,7 @@ export function Header() {
             </Link>
           ))}
           <Button asChild>
-            <Link href="#rent">Book Now</Link>
+            <Link href="/rent">Book Now</Link>
           </Button>
         </nav>
 
@@ -59,7 +59,7 @@ export function Header() {
                 </Link>
               ))}
               <Button asChild className="mt-4">
-                <Link href="#rent" onClick={() => setOpen(false)}>Book Now</Link>
+                <Link href="/rent" onClick={() => setOpen(false)}>Book Now</Link>
               </Button>
             </nav>
           </SheetContent>

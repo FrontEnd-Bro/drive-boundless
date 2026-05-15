@@ -6,10 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { Upload } from 'lucide-react'
 
 export function AddVehicleForm() {
   const { addVehicle } = useVehicles()
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>('')
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -34,11 +38,59 @@ export function AddVehicleForm() {
     }))
   }
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Set preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+    setImageFile(file)
+
+    // Upload to Sanity
+    setUploading(true)
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const data = await response.json()
+      setFormData((prev) => ({
+        ...prev,
+        image: data.url,
+      }))
+      toast.success('Image uploaded successfully')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload image. Make sure Sanity credentials are configured.')
+      setImagePreview('')
+      setImageFile(null)
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.make || !formData.model || !formData.color) {
       toast.error('Please fill in all required fields')
+      return
+    }
+
+    if (!formData.image) {
+      toast.error('Please upload an image')
       return
     }
 
@@ -69,6 +121,8 @@ export function AddVehicleForm() {
         image: '',
         available: true,
       })
+      setImageFile(null)
+      setImagePreview('')
     } finally {
       setLoading(false)
     }
@@ -188,20 +242,57 @@ export function AddVehicleForm() {
                 onChange={handleChange}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Image URL</label>
-              <Input
-                type="text"
-                name="image"
-                placeholder="e.g. /images/car.jpg"
-                value={formData.image}
-                onChange={handleChange}
-              />
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2">Vehicle Image *</label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition">
+                {imagePreview ? (
+                  <div className="space-y-2">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      {imageFile?.name}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setImagePreview('')
+                        setImageFile(null)
+                        setFormData((prev) => ({ ...prev, image: '' }))
+                      }}
+                    >
+                      Change Image
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <label className="cursor-pointer">
+                      <span className="text-sm font-medium">Click to upload</span>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PNG, JPG up to 10MB
+                    </p>
+                  </div>
+                )}
+                {uploading && <p className="text-sm text-muted-foreground mt-2">Uploading...</p>}
+              </div>
             </div>
           </div>
 
-          <Button type="submit" size="lg" disabled={loading}>
-            {loading ? 'Adding...' : 'Add Vehicle'}
+          <Button type="submit" size="lg" disabled={loading || uploading}>
+            {loading ? 'Adding...' : uploading ? 'Uploading...' : 'Add Vehicle'}
           </Button>
         </form>
       </CardContent>

@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 
 export default function AdminPage() {
   const { isAuthenticated, logout } = useAuth()
-  const { vehicles } = useVehicles()
+  const { vehicles, loading } = useVehicles()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
@@ -63,6 +63,11 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {loading && (
+          <div className="mb-4 p-4 bg-blue-50 text-blue-700 rounded-md">
+            Loading vehicles from Sanity...
+          </div>
+        )}
         <Tabs defaultValue="pending" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-3">
             <TabsTrigger value="pending" className="relative">
@@ -84,7 +89,7 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="approved" className="mt-8">
-            <VehicleApprovalList vehicles={approvedVehicles} showActions={false} />
+            <VehicleApprovalList vehicles={approvedVehicles} showActions={true} />
           </TabsContent>
 
           <TabsContent value="add" className="mt-8">

@@ -72,12 +72,10 @@ export function AddVehicleForm() {
       }))
       toast.success('Image uploaded successfully')
     } catch (error) {
-      console.error('Upload error:', error)
-      toast.error('Failed to upload image. Make sure Sanity credentials are configured.')
-      setImagePreview('')
-      setImageFile(null)
+      console.error('Error adding vehicle:', error)
+      toast.error('Failed to add vehicle. Make sure Sanity is configured.')
     } finally {
-      setUploading(false)
+      setLoading(false)
     }
   }
 
@@ -97,13 +95,11 @@ export function AddVehicleForm() {
     setLoading(true)
 
     try {
-      const newVehicle: Vehicle = {
-        id: Date.now().toString(),
+      await addVehicle({
         ...formData,
-        approved: false,
-      }
-
-      addVehicle(newVehicle)
+        available: true,
+        imageUrl: formData.image,
+      })
       toast.success('Vehicle added! Waiting for approval.')
       
       setFormData({

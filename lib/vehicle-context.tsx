@@ -22,160 +22,119 @@ export interface Vehicle {
 
 interface VehicleContextType {
   vehicles: Vehicle[]
-  addVehicle: (vehicle: Vehicle) => void
-  approveVehicle: (id: string) => void
-  rejectVehicle: (id: string) => void
-  deleteVehicle: (id: string) => void
-  updateVehicle: (id: string, vehicle: Partial<Vehicle>) => void
+  loading: boolean
+  addVehicle: (vehicle: Omit<Vehicle, 'id' | 'approved'> & { imageUrl: string }) => Promise<Vehicle>
+  approveVehicle: (id: string) => Promise<void>
+  rejectVehicle: (id: string) => Promise<void>
+  deleteVehicle: (id: string) => Promise<void>
+  refreshVehicles: () => Promise<void>
 }
 
 const VehicleContext = createContext<VehicleContextType | undefined>(undefined)
 
-const DEFAULT_VEHICLES: Vehicle[] = [
-  {
-    id: '1',
-    make: 'Mercedes-Benz',
-    model: 'S-Class',
-    year: 2024,
-    miles: 12500,
-    color: 'Obsidian Black',
-    pricePerDay: 250,
-    minRentalDays: 2,
-    deliveryFee: 50,
-    pickupTimes: '9 AM - 6 PM',
-    fuelType: 'Premium',
-    seats: 5,
-    image: '/images/mercedes-s-class.jpg',
-    available: true,
-    approved: true,
-  },
-  {
-    id: '2',
-    make: 'BMW',
-    model: '7 Series',
-    year: 2024,
-    miles: 8200,
-    color: 'Alpine White',
-    pricePerDay: 220,
-    minRentalDays: 2,
-    deliveryFee: 50,
-    pickupTimes: '9 AM - 6 PM',
-    fuelType: 'Premium',
-    seats: 5,
-    image: '/images/bmw-7-series.jpg',
-    available: true,
-    approved: true,
-  },
-  {
-    id: '3',
-    make: 'Porsche',
-    model: 'Cayenne',
-    year: 2023,
-    miles: 18300,
-    color: 'Chalk Grey',
-    pricePerDay: 280,
-    minRentalDays: 3,
-    deliveryFee: 75,
-    pickupTimes: '10 AM - 5 PM',
-    fuelType: 'Premium',
-    seats: 5,
-    image: '/images/porsche-cayenne.jpg',
-    available: true,
-    approved: true,
-  },
-  {
-    id: '4',
-    make: 'Audi',
-    model: 'A8',
-    year: 2024,
-    miles: 5600,
-    color: 'Mythos Black',
-    pricePerDay: 200,
-    minRentalDays: 1,
-    deliveryFee: 40,
-    pickupTimes: '8 AM - 7 PM',
-    fuelType: 'Premium',
-    seats: 5,
-    image: '/images/audi-a8.jpg',
-    available: true,
-    approved: true,
-  },
-  {
-    id: '5',
-    make: 'Range Rover',
-    model: 'Sport',
-    year: 2024,
-    miles: 9800,
-    color: 'Santorini Black',
-    pricePerDay: 300,
-    minRentalDays: 2,
-    deliveryFee: 60,
-    pickupTimes: '9 AM - 6 PM',
-    fuelType: 'Premium',
-    seats: 5,
-    image: '/images/range-rover-sport.jpg',
-    available: true,
-    approved: true,
-  },
-]
-
 export function VehicleProvider({ children }: { children: React.ReactNode }) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  const fetchVehicles = async () => {
+    try {
+      const response = await fetch('/api/vehicles')
+      if (!response.ok) throw new Error('Failed to fetch vehicles')
+      const data = await response.json()
+      setVehicles(data)
+    } catch (error) {
+      console.error('Error fetching vehicles:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    setMounted(true)
-    const stored = localStorage.getItem('vehicles')
-    if (stored) {
-      try {
-        setVehicles(JSON.parse(stored))
-      } catch {
-        setVehicles(DEFAULT_VEHICLES)
-      }
-    } else {
-      setVehicles(DEFAULT_VEHICLES)
-    }
+    fetchVehicles()
   }, [])
 
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('vehicles', JSON.stringify(vehicles))
+  const addVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'approved'> & { imageUrl: string }): Promise<Vehicle> => {
+    try {
+      const response = await fetch('/api/vehicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          make: vehicleData.make,
+          model: vehicleData.model,
+          year: vehicleData.year,
+          miles: vehicleData.miles,
+          color: vehicleData.color,
+          pricePerDay: vehicleData.pricePerDay,
+          minRentalDays: vehicleData.minRentalDays,
+          deliveryFee: vehicleData.deliveryFee,
+          pickupTimes: vehicleData.pickupTimes,
+          fuelType: vehicleData.fuelType,
+          seats: vehicleData.seats,
+          imageUrl: vehicleData.imageUrl,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to add vehicle')
+      const newVehicle = await response.json()
+      setVehicles([...vehicles, newVehicle])
+      return newVehicle
+    } catch (error) {
+      console.error('Error adding vehicle:', error)
+      throw error
     }
-  }, [vehicles, mounted])
-
-  const addVehicle = (vehicle: Vehicle) => {
-    setVehicles([...vehicles, vehicle])
   }
 
-  const approveVehicle = (id: string) => {
-    setVehicles(
-      vehicles.map((v) => (v.id === id ? { ...v, approved: true } : v))
-    )
+  const approveVehicle = async (id: string) => {
+    try {
+      const response = await fetch(`/api/vehicles/${id}/approve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved: true }),
+      })
+
+      if (!response.ok) throw new Error('Failed to approve vehicle')
+      const updated = await response.json()
+      setVehicles(vehicles.map((v) => (v.id === id ? { ...v, approved: updated.approved } : v)))
+    } catch (error) {
+      console.error('Error approving vehicle:', error)
+      throw error
+    }
   }
 
-  const rejectVehicle = (id: string) => {
-    setVehicles(vehicles.filter((v) => v.id !== id))
+  const rejectVehicle = async (id: string) => {
+    try {
+      await fetch(`/api/vehicles/${id}/approve`, { method: 'DELETE' })
+      setVehicles(vehicles.filter((v) => v.id !== id))
+    } catch (error) {
+      console.error('Error rejecting vehicle:', error)
+      throw error
+    }
   }
 
-  const deleteVehicle = (id: string) => {
-    setVehicles(vehicles.filter((v) => v.id !== id))
+  const deleteVehicle = async (id: string) => {
+    try {
+      await fetch(`/api/vehicles/${id}/approve`, { method: 'DELETE' })
+      setVehicles(vehicles.filter((v) => v.id !== id))
+    } catch (error) {
+      console.error('Error deleting vehicle:', error)
+      throw error
+    }
   }
 
-  const updateVehicle = (id: string, updatedData: Partial<Vehicle>) => {
-    setVehicles(
-      vehicles.map((v) => (v.id === id ? { ...v, ...updatedData } : v))
-    )
+  const refreshVehicles = async () => {
+    await fetchVehicles()
   }
 
   return (
     <VehicleContext.Provider
       value={{
         vehicles,
+        loading,
         addVehicle,
         approveVehicle,
         rejectVehicle,
         deleteVehicle,
-        updateVehicle,
+        refreshVehicles,
       }}
     >
       {children}

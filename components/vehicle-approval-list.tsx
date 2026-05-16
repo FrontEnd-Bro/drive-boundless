@@ -16,16 +16,33 @@ export function VehicleApprovalList({
   vehicles,
   showActions = true,
 }: VehicleApprovalListProps) {
-  const { approveVehicle, deleteVehicle } = useVehicles()
+  const { approveVehicle, rejectVehicle, deleteVehicle } = useVehicles()
 
-  const handleApprove = (id: string) => {
-    approveVehicle(id)
-    toast.success('Vehicle approved!')
+  const handleApprove = async (id: string) => {
+    try {
+      await approveVehicle(id)
+      toast.success('Vehicle approved!')
+    } catch (error) {
+      toast.error('Failed to approve vehicle')
+    }
   }
 
-  const handleReject = (id: string) => {
-    deleteVehicle(id)
-    toast.success('Vehicle rejected')
+  const handleReject = async (id: string) => {
+    try {
+      await rejectVehicle(id)
+      toast.success('Vehicle rejected')
+    } catch (error) {
+      toast.error('Failed to reject vehicle')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteVehicle(id)
+      toast.success('Vehicle deleted')
+    } catch (error) {
+      toast.error('Failed to delete vehicle')
+    }
   }
 
   if (vehicles.length === 0) {
@@ -113,10 +130,7 @@ export function VehicleApprovalList({
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => {
-                    deleteVehicle(vehicle.id)
-                    toast.success('Vehicle deleted')
-                  }}
+                  onClick={() => handleDelete(vehicle.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete

@@ -18,12 +18,9 @@ interface VehicleFleetProps {
 export function VehicleFleet({ onSelectVehicle }: VehicleFleetProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { vehicles } = useVehicles()
-  
-  // Filter only approved vehicles
-  const approvedVehicles = vehicles.filter(v => v.approved)
 
   const handleSelect = (vehicle: Vehicle) => {
-    setSelectedId(vehicle.id)
+    setSelectedId(vehicle._id)
     onSelectVehicle?.(vehicle)
     toast.success("Vehicle selected", {
       description: `${vehicle.year} ${vehicle.make} ${vehicle.model} - $${vehicle.pricePerDay}/day`,
@@ -47,11 +44,11 @@ export function VehicleFleet({ onSelectVehicle }: VehicleFleetProps) {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {approvedVehicles.map((vehicle) => (
+          {vehicles.map((vehicle) => (
             <Card 
-              key={vehicle.id}
+              key={vehicle._id}
               className={`group cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                selectedId === vehicle.id ? 'ring-2 ring-accent' : ''
+                selectedId === vehicle._id ? 'ring-2 ring-accent' : ''
               }`}
               onClick={() => handleSelect(vehicle)}
             >
@@ -76,9 +73,9 @@ export function VehicleFleet({ onSelectVehicle }: VehicleFleetProps) {
               <CardContent>
                 {/* Vehicle Image */}
                 <div className="aspect-[16/10] bg-muted rounded-lg mb-4 overflow-hidden relative">
-                  {vehicle.image ? (
+                  {vehicle.image?.asset?.url ? (
                     <Image
-                      src={vehicle.image}
+                      src={vehicle.image.asset.url}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"

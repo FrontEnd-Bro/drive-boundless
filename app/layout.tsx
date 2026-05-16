@@ -3,7 +3,6 @@ import { Playfair_Display, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
 import { VehicleProvider } from '@/lib/vehicle-context'
-import { AuthProvider } from '@/lib/auth-context'
 import './globals.css'
 
 const playfair = Playfair_Display({ 
@@ -48,13 +47,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} bg-background`}>
       <body className="font-sans antialiased">
-        <AuthProvider>
-          <VehicleProvider>
-            {children}
-            <Toaster position="top-center" richColors closeButton />
-            {process.env.NODE_ENV === 'production' && <Analytics />}
-          </VehicleProvider>
-        </AuthProvider>
+        <VehicleProvider>
+          {children}
+          <Toaster position="top-center" richColors closeButton />
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </VehicleProvider>
       </body>
     </html>
   )

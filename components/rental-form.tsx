@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, FileText, Check, Calendar, User, Car, Shield, Plus, X, Clock } from "lucide-react"
-import type { Vehicle } from "./vehicle-fleet"
+import type { Vehicle } from "@/lib/vehicle-context"
 
 interface AdditionalDriver {
   name: string

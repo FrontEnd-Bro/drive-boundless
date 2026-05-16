@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Settings } from "lucide-react"
+import { Menu } from "lucide-react"
 import { useState } from "react"
 
 export function Header() {
@@ -35,11 +35,6 @@ export function Header() {
           ))}
           <Button asChild>
             <Link href="/rent">Book Now</Link>
-          </Button>
-          <Button variant="ghost" size="icon" asChild title="Admin Panel">
-            <Link href="/admin">
-              <Settings className="h-5 w-5" />
-            </Link>
           </Button>
         </nav>
 
